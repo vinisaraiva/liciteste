@@ -18,17 +18,20 @@ def extract_content(url):
     # Armazenar uma quantidade maior de conteúdo
     return content
 
-# Função para gerar a resposta da API da OpenAI com base no conteúdo
-def generate_response_from_ai(api_key, conversation_history, question):
+# Função para gerar a resposta da API da OpenAI com base no conteúdo extraído
+def generate_response_from_ai(api_key, site_content, question):
     try:
         openai.api_key = api_key
-        conversation = [{"role": "system", "content": "You are a helpful assistant."}]
-        conversation += [{"role": "user", "content": message} for message in conversation_history]
-        conversation.append({"role": "user", "content": question})
-
+        
+        # Criando um prompt que injeta o contexto do conteúdo extraído do site
+        prompt = f"Here is the content from the site:\n{site_content}\nNow, based on this content, answer the following question: {question}"
+        
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
-            messages=conversation
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": prompt}
+            ]
         )
         return response['choices'][0]['message']['content']
     except openai.error.AuthenticationError:
@@ -41,6 +44,9 @@ def generate_response_from_ai(api_key, conversation_history, question):
 # Inicializando o histórico de conversa na sessão
 if 'conversation_history' not in st.session_state:
     st.session_state['conversation_history'] = []
+
+if 'site_content' not in st.session_state:
+    st.session_state['site_content'] = ""
 
 if 'api_connected' not in st.session_state:
     st.session_state['api_connected'] = False
@@ -71,19 +77,20 @@ if st.button("Consultar site"):
     if url and st.session_state['api_connected']:
         with st.spinner('Processando o conteúdo da página...'):
             site_content = extract_content(url)
-            st.session_state['conversation_history'] = []  # Resetando a memória do chatbot
-           #st.session_state['conversation_history'].append(f"Site content: {site_content[:500]}")  # Armazenando conteúdo para análise
-            st.session_state['conversation_history'].append(f"Site content: {site_content}")
-        st.success("O conteúdo do site foi armazenado com sucesso. Agora você pode fazer perguntas.")
+            st.session_state['site_content'] = site_content  # Armazena o conteúdo completo no session_state
+            st.success("O conteúdo do site foi armazenado com sucesso. Agora você pode fazer perguntas.")
     else:
         st.error("Insira a URL e conecte a API antes de prosseguir.")
 
 # Função para processar perguntas e respostas
 def handle_question(question):
-    if question and st.session_state['api_connected']:
+    if question and st.session_state['api_connected'] and st.session_state['site_content']:
         # Adiciona a pergunta ao histórico
         st.session_state['conversation_history'].append(f"User: {question}")
-        response = generate_response_from_ai(api_key, st.session_state['conversation_history'], question)
+        
+        # Gera a resposta usando o conteúdo armazenado
+        response = generate_response_from_ai(api_key, st.session_state['site_content'], question)
+        
         if response:
             # Adiciona a resposta ao histórico
             st.session_state['conversation_history'].append(f"AI: {response}")
