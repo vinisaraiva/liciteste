@@ -52,7 +52,7 @@ st.markdown("<style>div.stImage > img { padding-top: 0px; }</style>", unsafe_all
 
 # Interface Streamlit - Subheader com divisória
 
-st.subheader("This is a subheader with a divider")
+st.subheader("Aplicação para análise de informações de sites")
 st.divider()
 
 # Botão para consultar o site e resetar a memória
