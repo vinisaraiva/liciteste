@@ -11,15 +11,19 @@ def extract_content(url):
 
 # Função para gerar resposta da OpenAI com contexto
 def generate_response_from_ai(api_key, conversation_history, question):
-    openai.api_key = api_key
-    conversation = "\n".join(conversation_history)  # Concatenando o histórico da conversa
-    prompt = f"Here is the conversation so far:\n{conversation}\nAnswer the following question: {question}"
-    response = openai.Completion.create(
-        model="text-davinci-003",
-        prompt=prompt,
-        max_tokens=150
-    )
-    return response['choices'][0]['text']
+    try:
+        openai.api_key = api_key
+        conversation = "\n".join(conversation_history)  # Concatenando o histórico da conversa
+        prompt = f"Here is the conversation so far:\n{conversation}\nAnswer the following question: {question}"
+        response = openai.Completion.create(
+            model="text-davinci-003",
+            prompt=prompt,
+            max_tokens=150
+        )
+        return response['choices'][0]['text']
+    except openai.error.AuthenticationError as e:
+        st.error("Falha na autenticação: a chave da API da OpenAI está incorreta.")
+        return None
 
 # Inicializando o histórico de conversa na sessão
 if 'conversation_history' not in st.session_state:
@@ -59,8 +63,9 @@ def handle_question():
         # Adiciona a pergunta ao histórico
         st.session_state['conversation_history'].append(f"User: {question}")
         response = generate_response_from_ai(api_key, st.session_state['conversation_history'], question)
-        # Adiciona a resposta ao histórico
-        st.session_state['conversation_history'].append(f"AI: {response}")
+        if response:
+            # Adiciona a resposta ao histórico
+            st.session_state['conversation_history'].append(f"AI: {response}")
         st.session_state['user_input'] = ""  # Limpa o campo de entrada após o envio
 
 # Caixa de texto estilo chat
