@@ -64,9 +64,8 @@ if st.button("Consultar site"):
     else:
         st.error("Insira a URL e conecte a API antes de prosseguir.")
 
-# Campo para fazer perguntas estilo chat
-def handle_question():
-    question = st.session_state['user_input']
+# Função para processar pergunta e resposta
+def handle_question(question):
     if question and st.session_state['api_connected']:
         # Adiciona a pergunta ao histórico
         st.session_state['conversation_history'].append(f"User: {question}")
@@ -74,14 +73,15 @@ def handle_question():
         if response:
             # Adiciona a resposta ao histórico
             st.session_state['conversation_history'].append(f"AI: {response}")
-        st.session_state['user_input'] = ""  # Limpa o campo de entrada após o envio
 
-# Caixa de texto estilo chat
-st.text_input("Digite sua pergunta:", key='user_input', on_change=handle_question)
+# Campo de entrada no estilo de chat usando st.chat_input
+user_input = st.chat_input("Digite sua pergunta...")
+if user_input:
+    handle_question(user_input)
 
 # Exibindo o histórico de conversa
 for message in st.session_state['conversation_history']:
     if message.startswith("User:"):
-        st.text_area("Você:", message.replace("User:", ""), key=message, height=50)
+        st.chat_message("user").markdown(message.replace("User:", ""))
     else:
-        st.text_area("Assistente:", message.replace("AI:", ""), key=message, height=50)
+        st.chat_message("assistant").markdown(message.replace("AI:", ""))
