@@ -1,7 +1,11 @@
 import streamlit as st
 import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from bs4 import BeautifulSoup
 import openai
+
+# Suprimir o aviso de SSL
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 # Função para extrair conteúdo de um site
 def extract_content(url):
