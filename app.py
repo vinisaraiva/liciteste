@@ -51,7 +51,8 @@ st.image("header.png", use_column_width=True)
 st.markdown("<style>div.stImage > img { padding-top: 0px; }</style>", unsafe_allow_html=True)
 
 # Interface Streamlit - Subheader com divisória
-st.subheader("Automação de Leitura de Sites", divider=True)
+
+st.subheader("This is a subheader with a divider", divider="orange")
 
 # Botão para consultar o site e resetar a memória
 url = st.text_input("Digite a URL do site:")
