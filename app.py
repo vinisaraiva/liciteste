@@ -1,19 +1,24 @@
 import streamlit as st
 import requests
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from bs4 import BeautifulSoup
 import openai
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
-# Suprimir o aviso de SSL
+# Suprimir os avisos de SSL
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-# Função para extrair conteúdo de um site
+# Função para extrair conteúdo de uma página da web
 def extract_content(url):
-    response = requests.get(url, verify=False)  # Ignorando a verificação SSL para facilitar o teste
+    response = requests.get(url, verify=False)
     soup = BeautifulSoup(response.content, 'html.parser')
-    return ' '.join([p.get_text() for p in soup.find_all('p')])
+    
+    # Captura uma maior variedade de tags (p, div, span) para coletar mais conteúdo
+    content = ' '.join([p.get_text() for p in soup.find_all(['p', 'div', 'span'])])
+    
+    # Armazenar uma quantidade maior de conteúdo
+    return content
 
-# Função para gerar resposta da OpenAI com contexto usando o modelo gpt-3.5-turbo
+# Função para gerar a resposta da API da OpenAI com base no conteúdo
 def generate_response_from_ai(api_key, conversation_history, question):
     try:
         openai.api_key = api_key
@@ -54,23 +59,25 @@ if st.sidebar.button("Conectar API"):
 st.image("header.png", use_column_width=True)
 st.markdown("<style>div.stImage > img { padding-top: 0px; }</style>", unsafe_allow_html=True)
 
-# Interface Streamlit - Subheader com divisória
-
-st.subheader("Aplicação para análise de informações de sites")
+# Subheader e divisória
+st.subheader("Automação de Leitura de Sites")
 st.divider()
 
-# Botão para consultar o site e resetar a memória
+# Entrada da URL e botão de processamento
 url = st.text_input("Digite a URL do site:")
+
+# Spinner para feedback do usuário
 if st.button("Consultar site"):
     if url and st.session_state['api_connected']:
-        site_content = extract_content(url)
-        st.session_state['conversation_history'] = []  # Resetando a memória do chatbot
-        st.session_state['conversation_history'].append(f"Site content: {site_content[:500]}")  # Armazenando parte do conteúdo
-        st.success("O conteúdo do site foi armazenado e a memória foi resetada.")
+        with st.spinner('Processando o conteúdo da página...'):
+            site_content = extract_content(url)
+            st.session_state['conversation_history'] = []  # Resetando a memória do chatbot
+            st.session_state['conversation_history'].append(f"Site content: {site_content[:1000]}")  # Armazenando conteúdo para análise
+        st.success("O conteúdo do site foi armazenado com sucesso. Agora você pode fazer perguntas.")
     else:
         st.error("Insira a URL e conecte a API antes de prosseguir.")
 
-# Função para processar pergunta e resposta
+# Função para processar perguntas e respostas
 def handle_question(question):
     if question and st.session_state['api_connected']:
         # Adiciona a pergunta ao histórico
@@ -80,7 +87,7 @@ def handle_question(question):
             # Adiciona a resposta ao histórico
             st.session_state['conversation_history'].append(f"AI: {response}")
 
-# Campo de entrada no estilo de chat usando st.chat_input
+# Campo de entrada no estilo de chat
 user_input = st.chat_input("Digite sua pergunta...")
 if user_input:
     handle_question(user_input)
