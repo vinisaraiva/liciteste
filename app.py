@@ -15,8 +15,12 @@ def extract_content(url):
     # Captura uma maior variedade de tags (p, div, span) para coletar mais conteúdo
     content = ' '.join([p.get_text() for p in soup.find_all(['p', 'div', 'span'])])
     
-    # Armazenar uma quantidade maior de conteúdo
     return content
+
+# Função para dividir o conteúdo em blocos menores
+def split_content(content, max_length=3000):
+    for i in range(0, len(content), max_length):
+        yield content[i:i + max_length]
 
 # Função para gerar a resposta da API da OpenAI com base no conteúdo extraído
 def generate_response_from_ai(api_key, site_content, question):
@@ -85,15 +89,19 @@ if st.button("Consultar site"):
 # Função para processar perguntas e respostas
 def handle_question(question):
     if question and st.session_state['api_connected'] and st.session_state['site_content']:
-        # Adiciona a pergunta ao histórico
-        st.session_state['conversation_history'].append(f"User: {question}")
+        # Dividir o conteúdo em blocos menores
+        content_blocks = list(split_content(st.session_state['site_content']))
         
-        # Gera a resposta usando o conteúdo armazenado
-        response = generate_response_from_ai(api_key, st.session_state['site_content'], question)
-        
-        if response:
-            # Adiciona a resposta ao histórico
-            st.session_state['conversation_history'].append(f"AI: {response}")
+        # Iterar sobre os blocos até encontrar uma resposta adequada
+        for block in content_blocks:
+            response = generate_response_from_ai(api_key, block, question)
+            if response and "I don't know" not in response:  # Considera resposta válida se não contém "I don't know"
+                # Adiciona a pergunta e resposta ao histórico
+                st.session_state['conversation_history'].append(f"User: {question}")
+                st.session_state['conversation_history'].append(f"AI: {response}")
+                break
+        else:
+            st.session_state['conversation_history'].append(f"AI: Não encontrei uma resposta com os dados disponíveis.")
 
 # Campo de entrada no estilo de chat
 user_input = st.chat_input("Digite sua pergunta...")
