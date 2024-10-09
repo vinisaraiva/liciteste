@@ -92,16 +92,13 @@ def handle_question(question):
         # Dividir o conteúdo em blocos menores
         content_blocks = list(split_content(st.session_state['site_content']))
         
-        # Iterar sobre os blocos até encontrar uma resposta adequada
-        for block in content_blocks:
-            response = generate_response_from_ai(api_key, block, question)
-            if response and "I don't know" not in response:  # Considera resposta válida se não contém "I don't know"
+        # Usar o primeiro bloco para responder a pergunta (ou ajustar conforme necessário)
+        if content_blocks:
+            response = generate_response_from_ai(api_key, content_blocks[0], question)
+            if response:
                 # Adiciona a pergunta e resposta ao histórico
                 st.session_state['conversation_history'].append(f"User: {question}")
                 st.session_state['conversation_history'].append(f"AI: {response}")
-                break
-        else:
-            st.session_state['conversation_history'].append(f"AI: Não encontrei uma resposta com os dados disponíveis.")
 
 # Campo de entrada no estilo de chat
 user_input = st.chat_input("Digite sua pergunta...")
