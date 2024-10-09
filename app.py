@@ -5,7 +5,7 @@ import openai
 
 # Função para extrair conteúdo de um site
 def extract_content(url):
-    response = requests.get(url)
+    response = requests.get(url, verify=False)
     soup = BeautifulSoup(response.content, 'html.parser')
     return ' '.join([p.get_text() for p in soup.find_all('p')])
 
