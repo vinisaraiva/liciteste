@@ -9,20 +9,24 @@ def extract_content(url):
     soup = BeautifulSoup(response.content, 'html.parser')
     return ' '.join([p.get_text() for p in soup.find_all('p')])
 
-# Função para gerar resposta da OpenAI com contexto
+# Função para gerar resposta da OpenAI com contexto usando o modelo gpt-3.5-turbo
 def generate_response_from_ai(api_key, conversation_history, question):
     try:
         openai.api_key = api_key
-        conversation = "\n".join(conversation_history)  # Concatenando o histórico da conversa
-        prompt = f"Here is the conversation so far:\n{conversation}\nAnswer the following question: {question}"
-        response = openai.Completion.create(
-            model="text-davinci-003",
-            prompt=prompt,
-            max_tokens=150
+        conversation = [{"role": "system", "content": "You are a helpful assistant."}]
+        conversation += [{"role": "user", "content": message} for message in conversation_history]
+        conversation.append({"role": "user", "content": question})
+
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=conversation
         )
-        return response['choices'][0]['text']
-    except openai.error.AuthenticationError as e:
+        return response['choices'][0]['message']['content']
+    except openai.error.AuthenticationError:
         st.error("Falha na autenticação: a chave da API da OpenAI está incorreta.")
+        return None
+    except openai.error.InvalidRequestError as e:
+        st.error(f"Erro na solicitação: {e}")
         return None
 
 # Inicializando o histórico de conversa na sessão
