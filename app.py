@@ -46,11 +46,15 @@ if st.sidebar.button("Conectar API"):
     else:
         st.sidebar.error("Por favor, insira uma chave de API válida.")
 
-# Interface Streamlit - Chat
-st.title("Automação de Leitura de Sites")
-url = st.text_input("Digite a URL do site:")
+# Inserir imagem de cabeçalho
+st.image("header.png", use_column_width=True)
+st.markdown("<style>div.stImage > img { padding-top: 0px; }</style>", unsafe_allow_html=True)
+
+# Interface Streamlit - Subheader com divisória
+st.subheader("Automação de Leitura de Sites", divider=True)
 
 # Botão para consultar o site e resetar a memória
+url = st.text_input("Digite a URL do site:")
 if st.button("Consultar site"):
     if url and st.session_state['api_connected']:
         site_content = extract_content(url)
