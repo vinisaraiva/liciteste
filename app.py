@@ -72,7 +72,8 @@ if st.button("Consultar site"):
         with st.spinner('Processando o conteúdo da página...'):
             site_content = extract_content(url)
             st.session_state['conversation_history'] = []  # Resetando a memória do chatbot
-            st.session_state['conversation_history'].append(f"Site content: {site_content[:1000]}")  # Armazenando conteúdo para análise
+           #st.session_state['conversation_history'].append(f"Site content: {site_content[:500]}")  # Armazenando conteúdo para análise
+            st.session_state['conversation_history'].append(f"Site content: {site_content}")
         st.success("O conteúdo do site foi armazenado com sucesso. Agora você pode fazer perguntas.")
     else:
         st.error("Insira a URL e conecte a API antes de prosseguir.")
